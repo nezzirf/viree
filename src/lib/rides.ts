@@ -1,5 +1,5 @@
 /** Construction d'une sortie à partir d'une trace (import ou enregistrement dans l'app). */
-import { downsample, elevationGain, hasElevation, trackLength, type TrackPoint } from "./geo";
+import { downsample, hasElevation, realisticGain, trackLength, type TrackPoint } from "./geo";
 import type { Ride, RideSource } from "./ride";
 import { computeScore } from "./score";
 
@@ -20,7 +20,7 @@ export function buildRide(input: {
   colName?: string;
 }): Ride {
   const distanceM = Math.round(trackLength(input.points));
-  const ascentM = hasElevation(input.points) ? elevationGain(input.points).ascent : 0;
+  const ascentM = hasElevation(input.points) ? realisticGain(input.points).ascent : 0;
   return {
     id: rideId(input.date, distanceM),
     name: input.name,

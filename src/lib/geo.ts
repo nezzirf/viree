@@ -86,6 +86,45 @@ export function elevationGain(points: readonly TrackPoint[], thresholdM = 4): { 
   return { ascent: Math.round(ascent), descent: Math.round(descent) };
 }
 
+/**
+ * Lisse les altitudes par moyenne glissante sur `windowM` mètres (centrée).
+ *
+ * Pourquoi : les altitudes des moteurs de routage viennent de modèles de terrain (SRTM…)
+ * dont la valeur « tremble » de quelques mètres d'un point à l'autre, et plus fort encore
+ * dans les vallées encaissées ou en forêt. Sur 90 km, ces micro-variations ajoutées
+ * gonflent le D+ de 30 à 60 %. Garmin, Strava et compagnie lissent eux aussi leurs profils.
+ */
+export function smoothElevation(points: readonly TrackPoint[], windowM = 200): TrackPoint[] {
+  if (!hasElevation(points)) return points.slice();
+  const cum = cumulativeDistances(points);
+  const half = windowM / 2;
+  const out: TrackPoint[] = [];
+  let lo = 0;
+  let hi = 0;
+  let sum = 0;
+  let n = 0;
+  for (let i = 0; i < points.length; i++) {
+    // Fenêtre [cum[i] - half, cum[i] + half], maintenue par deux pointeurs.
+    while (hi < points.length && cum[hi] <= cum[i] + half) {
+      const e = points[hi][2];
+      if (typeof e === "number") { sum += e; n++; }
+      hi++;
+    }
+    while (cum[lo] < cum[i] - half) {
+      const e = points[lo][2];
+      if (typeof e === "number") { sum -= e; n--; }
+      lo++;
+    }
+    out.push([points[i][0], points[i][1], n ? Math.round((sum / n) * 10) / 10 : points[i][2]]);
+  }
+  return out;
+}
+
+/** D+ / D- « réalistes » : profil lissé puis hystérésis. Même méthode pour tous les moteurs. */
+export function realisticGain(points: readonly TrackPoint[]): { ascent: number; descent: number } {
+  return elevationGain(smoothElevation(points), 3);
+}
+
 export function hasElevation(points: readonly TrackPoint[]): boolean {
   let n = 0;
   for (const p of points) if (typeof p[2] === "number" && !Number.isNaN(p[2])) n++;

@@ -125,7 +125,7 @@ export class OrsProvider implements RoutingProvider {
     return {
       coordinates: coords,
       distanceM: Math.round(f.properties.summary?.distance ?? 0),
-      ascentM: Math.round(f.properties.ascent ?? gain.ascent),
+      ascentM: Math.round(f.properties.ascent ?? gain.ascent), // brut ; recalculé (lissé) dans planRoute
       descentM: Math.round(f.properties.descent ?? gain.descent),
       provider: this.name,
     };

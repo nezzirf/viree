@@ -24,7 +24,8 @@ function networkGuard<T>(p: Promise<T>): Promise<T> {
 }
 
 export async function fetchRoute(req: RouteRequest): Promise<RouteResult> {
-  const key = JSON.stringify(req);
+  // « v2 » : D+ recalculé sur profil lissé (les anciens circuits en cache le surestimaient).
+  const key = `v2:${JSON.stringify(req)}`;
   const hit = await cachedRoute(key).catch(() => undefined);
   // Les tracés du moteur démo ne sont jamais réutilisés : sinon, après être passé à ORS,
   // on continuerait à voir les anciennes lignes droites pour le même départ.

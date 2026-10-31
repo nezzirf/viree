@@ -101,7 +101,8 @@ describe("DemoProvider + planRoute", () => {
     expect(spy).toHaveBeenCalledTimes(1);
     const go = await spy.mock.results[0].value;
     expect(r.distanceM).toBe(go.distanceM * 2);
-    expect(r.ascentM).toBe(go.ascentM + go.descentM);
+    // D+ recalculé sur profil lissé : proche de montée + descente de l'aller (à 5 % près).
+    expect(Math.abs(r.ascentM - (go.ascentM + go.descentM))).toBeLessThan((go.ascentM + go.descentM) * 0.05);
     expect(haversine(r.coordinates.at(-1)!, start)).toBeLessThan(1);
   });
 

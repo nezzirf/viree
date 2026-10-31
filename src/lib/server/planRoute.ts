@@ -2,13 +2,26 @@
  * Transforme une demande de l'app (boucle, ou col en aller-retour/boucle)
  * en appels au RoutingProvider. Fonction pure côté serveur → facile à tester.
  */
-import { bearing, destination, haversine } from "../geo";
+import { bearing, destination, elevationGain, hasElevation, haversine, smoothElevation } from "../geo";
 import type { RouteRequest, RouteResult } from "../types";
 import { RoutingError, type RoutingProvider } from "../routing/types";
 
 export const LIMITS = { minM: 3000, maxM: 250000 };
 
+/**
+ * Point d'entrée : calcule le tracé puis recalcule le dénivelé nous-mêmes, à partir du profil
+ * lissé. On n'utilise PAS le D+ renvoyé par le moteur (ORS additionne le bruit du modèle de
+ * terrain et surestime nettement : ~1 300 m annoncés pour ~800 m réels sur une boucle de 92 km).
+ */
 export async function planRoute(req: RouteRequest, provider: RoutingProvider): Promise<RouteResult> {
+  const raw = await planRawRoute(req, provider);
+  const coordinates = smoothElevation(raw.coordinates);
+  if (!hasElevation(coordinates)) return raw;
+  const gain = elevationGain(coordinates, 3);
+  return { ...raw, coordinates, ascentM: gain.ascent, descentM: gain.descent };
+}
+
+async function planRawRoute(req: RouteRequest, provider: RoutingProvider): Promise<RouteResult> {
   if (req.kind === "loop") {
     if (req.distanceM < LIMITS.minM || req.distanceM > LIMITS.maxM) {
       throw new RoutingError("BAD_REQUEST", "La distance doit être comprise entre 3 et 250 km.");
