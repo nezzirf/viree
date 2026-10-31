@@ -1,0 +1,73 @@
+@import "tailwindcss";
+
+/*
+ * Identité Virée : nuit profonde + citron vif (action) + corail (dénivelé).
+ * Contrastes vérifiés : texte #F2F5F8 sur #0B0F14 ≈ 17:1 ; #0B0F14 sur #D4FF3A ≈ 16:1 ;
+ * texte secondaire #A7B0BC sur #141A22 ≈ 8:1 (AA/AAA).
+ */
+@theme {
+  --color-night: #0b0f14;
+  --color-surface: #141a22;
+  --color-raised: #1d2530;
+  --color-line: #2b3542;
+  --color-ink: #f2f5f8;
+  --color-mute: #a7b0bc;
+  --color-lime: #d4ff3a;
+  --color-lime-deep: #b8e61a;
+  --color-coral: #ff6b4a;
+  --color-sky: #59c3ff;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display: ui-rounded, "SF Pro Rounded", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+html {
+  --header-h: calc(61px + env(safe-area-inset-top));
+  color-scheme: dark;
+  background: var(--color-night);
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background: var(--color-night);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 17px; /* lisible en roulant */
+  line-height: 1.45;
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-lime);
+  outline-offset: 2px;
+}
+
+/* Animations sobres, désactivées si l'utilisateur le demande. */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+.animate-rise { animation: rise 0.25s ease-out both; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+/* Composants réutilisables */
+@layer components {
+  .btn {
+    @apply inline-flex min-h-14 items-center justify-center gap-2 rounded-2xl px-5 text-lg font-semibold transition-colors disabled:opacity-50;
+  }
+  .btn-primary { @apply inline-flex min-h-14 items-center justify-center gap-2 rounded-2xl px-5 text-lg font-semibold transition-colors disabled:opacity-50 bg-lime text-night hover:bg-lime-deep active:bg-lime-deep; }
+  .btn-ghost { @apply inline-flex min-h-14 items-center justify-center gap-2 rounded-2xl px-5 text-lg font-semibold transition-colors disabled:opacity-50 bg-raised text-ink hover:bg-line; }
+  .card { @apply rounded-3xl bg-surface p-4; }
+  .label { @apply mb-2 block text-sm font-medium uppercase tracking-wide text-mute; }
+  .field {
+    @apply min-h-14 w-full rounded-2xl border border-line bg-raised px-4 text-lg text-ink placeholder:text-mute;
+  }
+}
+
+/* MapLibre : contrôles adaptés au thème sombre */
+.maplibregl-ctrl-group { background: var(--color-surface) !important; }
+.maplibregl-ctrl-group button { width: 44px !important; height: 44px !important; }
+.maplibregl-ctrl-group button .maplibregl-ctrl-icon { filter: invert(1); }
+.maplibregl-ctrl-attrib { background: rgba(11, 15, 20, 0.75) !important; color: var(--color-mute) !important; font-size: 11px; }
+.maplibregl-ctrl-attrib a { color: var(--color-ink) !important; }
